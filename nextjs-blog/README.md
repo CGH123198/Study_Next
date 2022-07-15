@@ -34,10 +34,10 @@ export async function getServerSideProps(context) {
 }
 ```
 
-## SWR (Data를 fetching하기 위한 React Hook)
-- client side에서 data를 fetching할 때 추천함.
-- caching, revalidation, focus tracking, refetching 등등 처리.
-```
+- SWR (Data를 fetching하기 위한 React Hook)
+    - client side에서 data를 fetching할 때 추천함.
+    - caching, revalidation, focus tracking, refetching 등등 처리.
+    ```
     import userSWR from 'swr';
 
     function Profile() {
@@ -46,5 +46,6 @@ export async function getServerSideProps(context) {
         if (!data) return <div> loading...</div>;
         return <div>hello {data.name}!</div>;
     }
-```
-- [SWR 자세한 내용](https://swr.vercel.app/ko)
+    ```
+    - [SWR 자세한 내용](https://swr.vercel.app/ko)
+
