@@ -6,8 +6,10 @@
 - getStaticProps() 사용.
     - page가 렌더링 되기 전에 서버에서 사용.
     - 위 이유 때문에 pages 디렉토리 안에서만 export 가능.
+    - Next.js코드에 getStaticProps가 있다면 Next.js가 빌드시 함수를 실행하고, 그 props를 컴포넌트에 전달.
+    - Next.js에게 "이 페이지에 data dependencies가 있으니 먼저 실행하라"고 알림.
 ```
-export async function getStaticProps() {
+export async function getStaticProps(context) {
     //Get external data from API, DB, etc...
     const data = ...
 
@@ -16,7 +18,11 @@ export async function getStaticProps() {
     };
 }
 ```
-
+    - context Parameter
+        - `params`: dynamic routes를 사용하는 pages에 대한 route parameters. e.g) page이름이 `[id].js`일 때, `params`는  { id: ... }이다.
+        - `preview`: Preview Mode에 있는 page가 `undefined`가 아니라면 `true`.
+        - `previewData`: `setPreviewData`에 의해 세팅되는 previewData
+        - `locale`, `locales`, `defaultLocale`
 
 
 2. Server-side Rendering
@@ -49,3 +55,40 @@ export async function getServerSideProps(context) {
     ```
     - [SWR 자세한 내용](https://swr.vercel.app/ko)
 
+
+## Dynamic Routes
+1. external data에 따라  동적으로 page path가 생성된다.
+Dynamic Routes pages 생성을 위해서는 다음과 같은 내용이 page file에 포함되어야 한다.(/pages/posts/[id].js)
+    - page에 렌더할 React Component
+    - id값으로 된 배열을 반환하는 getStaticPaths
+    - id값을 사용해 post에 대한 data를 가져오는 getStaticProps
+
+2. getStaticPaths
+- dynamic routes를 사용하는 page에서 호출되면, next.js는 getStaticPaths에 의해 특정된 모든 경로들을 정적으로 pre-render한다.
+- getStaticPaths는 getServerSideProps가 아닌 getStaticProps와 함께 써야만 한다.
+```
+export async function getStaticPaths() {
+  return {
+    paths: [
+      { params: { ... } }
+    ],
+    fallback: true // false or 'blocking'
+  };
+}
+```
+- getStaticPaths는 언제 사용되는가?
+    - dynamic routes를 사용하는 page들을 pre-render될 떄
+    - headless CMS, DB, FileSystem에서 data가 호출 될 때
+    - data를 공개적으로 캐싱할 수 있을 때
+    - page가 (SEO전용)매우 빨라야 하고 pre-rendering되어야 할 때.
+    (`getStaticProps`는  성능을 위해 CDN에 cache될 수 있는 `HTML`과 `JSON`파일을 생성한다.)
+- getStaticPaths는 언제 실행되는가?
+    - build하는 동안에만 실행된다.(~~runtime~~)
+- getStaticProps는 getStaticPaths와 관련하여 어떻게 실행되는가?
+    - `getStaticProps`는 build하는 동안 반환된 path들에 대해 'next build'하는 동안 실행된다.
+    - `fallback: true`일 때 background에서 실행된다.
+    - `fallback: blocking`일 때 초기 렌더링 이전에 호출된다.
+- getStaticPaths는 어디서 사용할 수 있는가?(위치)
+    - `dynamic routes'를 사용하는 곳에서 export
+    - non-page files에서 export 불가
+    - 누군가의 props로 사용하지 못한다.(standalone function)
