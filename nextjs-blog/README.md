@@ -1,5 +1,3 @@
-# NEXT JS 공식문서
-
 ## Pre-rendering의 두가지 형태
 1.Static Generation
 - build-time에 HTML 생성.(처리 속도 빠름)
