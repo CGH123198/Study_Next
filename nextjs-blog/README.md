@@ -3,7 +3,7 @@
 ## Pre-rendering의 두가지 형태
 1.Static Generation
 - build-time에 HTML 생성.(처리 속도 빠름)
-- getStaticProps() 사용.
+- getStaticProps() 사용. 위부 데이터를 fetch할 때 사용.
     - page가 렌더링 되기 전에 서버에서 사용.
     - 위 이유 때문에 pages 디렉토리 안에서만 export 가능.
     - Next.js코드에 getStaticProps가 있다면 Next.js가 빌드시 함수를 실행하고, 그 props를 컴포넌트에 전달.
@@ -76,19 +76,33 @@ export async function getStaticPaths() {
   };
 }
 ```
-- getStaticPaths는 언제 사용되는가?
+- `getStaticPaths`는 언제 사용되는가?
     - dynamic routes를 사용하는 page들을 pre-render될 떄
     - headless CMS, DB, FileSystem에서 data가 호출 될 때
     - data를 공개적으로 캐싱할 수 있을 때
     - page가 (SEO전용)매우 빨라야 하고 pre-rendering되어야 할 때.
     (`getStaticProps`는  성능을 위해 CDN에 cache될 수 있는 `HTML`과 `JSON`파일을 생성한다.)
 - getStaticPaths는 언제 실행되는가?
-    - build하는 동안에만 실행된다.(~~runtime~~)
+    - In production: build Time, In development: every request
 - getStaticProps는 getStaticPaths와 관련하여 어떻게 실행되는가?
     - `getStaticProps`는 build하는 동안 반환된 path들에 대해 'next build'하는 동안 실행된다.
     - `fallback: true`일 때 background에서 실행된다.
     - `fallback: blocking`일 때 초기 렌더링 이전에 호출된다.
 - getStaticPaths는 어디서 사용할 수 있는가?(위치)
-    - `dynamic routes'를 사용하는 곳에서 export
+    - `dynamic routes`를 사용하는 곳에서 export
     - non-page files에서 export 불가
     - 누군가의 props로 사용하지 못한다.(standalone function)
+- Fallback
+    - `fallback: false`: `getStaticPaths에 의해 반환되지 않은 경로는 404 반환.
+    - `fallback: true`: `getStaticProps`의 행동이 변화한다.
+        - `getStaticPaths`에서 반환된 path들이 buildTime에 HTML에서 렌더된다.
+        - buildTime에 생성되지 않은 경로들은 404. Next.js는 그런 경로들에 대한 첫 요청에는 page의 `fallback`version을 제공한다.(`fallback` version = 대체 페이지)
+        - background에서 Next.js는 요청된 경로를 정적으로 생성할 것이다. 동일 경로에 대한 재요청은 buildTime에 pre-render된 다른 페이지처럼 처리한다.
+    - `fallback: blocking`: 새로운 경로는 `getStaticProps`와 함께 server-side에서 렌더링된다. 미래의 요청에 대비해 cach되므로 경로 당 한 번만 수행된다.
+
+- API Routes
+    - `getStaticProps`와 `getStaticPaths`에서 API Route를 Fetch 하지마라. `getStaticProps`와 `getStaticPaths`에는  server-side code를 직접 써라. 이 두 함수는 client-side 코드는 절대 돌아가지 않는다. 그리고 이 두 함수는 브라우저를 위한 JS bundle에 포함되지 않는다. 이것은 우리가 db query문 같은 코드들을 브라우저에 보내지 않고 직접 작성할 수 있음을 의미한다.
+    [Writing Server-side code](https://nextjs.org/docs/basic-features/data-fetching/get-static-props#write-server-side-code-directly)
+
+    - Use Case : Handling Form Input
+    
