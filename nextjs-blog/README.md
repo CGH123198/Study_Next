@@ -100,9 +100,13 @@ export async function getStaticPaths() {
         - background에서 Next.js는 요청된 경로를 정적으로 생성할 것이다. 동일 경로에 대한 재요청은 buildTime에 pre-render된 다른 페이지처럼 처리한다.
     - `fallback: blocking`: 새로운 경로는 `getStaticProps`와 함께 server-side에서 렌더링된다. 미래의 요청에 대비해 cach되므로 경로 당 한 번만 수행된다.
 
-- API Routes
-    - `getStaticProps`와 `getStaticPaths`에서 API Route를 Fetch 하지마라. `getStaticProps`와 `getStaticPaths`에는  server-side code를 직접 써라. 이 두 함수는 client-side 코드는 절대 돌아가지 않는다. 그리고 이 두 함수는 브라우저를 위한 JS bundle에 포함되지 않는다. 이것은 우리가 db query문 같은 코드들을 브라우저에 보내지 않고 직접 작성할 수 있음을 의미한다.
+## API Routes : Next.js app에 API endpoint를 만들어준다.(`pages/api`안에 함수 정의)
+    - `getStaticProps`와 `getStaticPaths`에서 API Route를 Fetch 하지마라. `getStaticProps`와 `getStaticPaths`에는  server-side code를 직접 써라. 이 두 함수는 client-side 코드는 절대 돌아가지 않는다. 그리고 이 두 함수는 브라우저를 위한 JS bundle에 포함되지 않는다. 이것은 우리가 db query문 같은 코드들을 브라우저에 보내지 않고 직접 작성할 수 있음을 의미한다.(~~HTML~~)
+    ```
+    function handler(req, res) {
+        res.status(200).join({ message: 'Success'})
+    }
+    ```
     [Writing Server-side code](https://nextjs.org/docs/basic-features/data-fetching/get-static-props#write-server-side-code-directly)
 
-    - Use Case : Handling Form Input
-    
+    - good usecase: Handling Form Input, Preview Mode, Dynamic API Routes
